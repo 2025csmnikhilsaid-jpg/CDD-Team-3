@@ -1,4 +1,3 @@
-
 # Git
 .git/
 .github/
@@ -19,6 +18,8 @@ mongodb-backup/
 *.bson
 *.bson.gz
 *.metadata.json
+
+
 
 # Uploaded resumes and files
 backend/uploads/
