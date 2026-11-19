@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymongo
+email-validator
+python-multipart
+pytest
+httpx
+python-jose[cryptography]
+python-multipart
