@@ -65,6 +65,7 @@ def test_job_routes_exist():
     paths = get_registered_paths()
 
     assert "/jobs" in paths
+    assert "/students/me/recommended-jobs" in paths
 
 
 def test_resume_routes_exist():
@@ -84,3 +85,9 @@ def test_notification_routes_exist():
 
     assert "/notifications" in paths
     assert "/notifications/unread-count" in paths
+
+
+def test_student_assistant_routes_exist():
+    paths = get_registered_paths()
+    assert "/assistant/chat" in paths
+    assert "/assistant/history" in paths
