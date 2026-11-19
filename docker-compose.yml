@@ -1,34 +1,62 @@
+name: carrierspheare
+
 services:
   mongodb:
     image: mongo:7
-    container_name: campus-placement-mongodb
+    container_name: carrierspheare-mongodb
     restart: unless-stopped
     volumes:
-      - mongodb_data:/data/db
-      - ./mongodb-backup:/backup:ro
+      - carrierspheare_mongodb_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 8
+      start_period: 10s
 
   backend:
+    image: carrierspheare-backend:latest
+    container_name: carrierspheare-backend
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: campus-placement-backend
     restart: unless-stopped
     ports:
-      - "8002:8000"
+      - "8003:8000"
     environment:
       MONGO_URL: mongodb://mongodb:27017/
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env before starting}
+      ADMIN_REGISTRATION_CODE: ${ADMIN_REGISTRATION_CODE:-}
       MARKSHEET_DIR: /app/uploads/marksheets
+      FRONTEND_ORIGINS: http://localhost:5501,http://127.0.0.1:5501
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
     volumes:
       - ./backend/uploads/resumes:/app/uploads/resumes
       - ./backend/uploads/marksheets:/app/uploads/marksheets
     depends_on:
       mongodb:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    image: carrierspheare-frontend:latest
+    container_name: carrierspheare-frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5501:80"
+    depends_on:
+      backend:
+        condition: service_healthy
 
 volumes:
-  mongodb_data:
+  carrierspheare_mongodb_data:
+    name: carrierspheare_mongodb_data
