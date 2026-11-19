@@ -1,0 +1,99 @@
+/* Premium CareerSphere visual refinement and student assistant. */
+:root { --cs-ink:#15213b; --cs-muted:#68758d; --cs-primary:#405de6; --cs-border:#e6eaf2; --cs-surface:#fff; }
+body { color:var(--cs-ink); }
+.dashboard-navbar { position:sticky; top:0; z-index:1020; backdrop-filter:blur(14px); }
+body > nav.navbar-dark.bg-dark { background:linear-gradient(110deg,#111d42,#263f91)!important; padding:14px 0; box-shadow:0 8px 24px rgba(17,29,66,.15); }
+body > nav.navbar-dark .navbar-brand { font-weight:800; letter-spacing:-.5px; }
+body > nav.navbar:not(.dashboard-navbar) { border-bottom:1px solid var(--cs-border); }
+.dashboard-welcome { position:relative; overflow:hidden; border-radius:24px; padding:clamp(30px,5vw,54px); background:radial-gradient(circle at 88% 18%,rgba(135,163,255,.34),transparent 28%),linear-gradient(120deg,#111d42 0%,#263f91 54%,#4b67e9 100%); box-shadow:0 22px 55px rgba(33,55,125,.18); }
+.dashboard-welcome:after { content:""; position:absolute; width:260px;height:260px;border:1px solid rgba(255,255,255,.15);border-radius:50%;right:-70px;bottom:-155px;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.025); }
+.dashboard-welcome h1 { letter-spacing:-1.2px; }
+.dashboard-stat-card,.application-summary-card,.admin-stat-card,.stat-card { border:1px solid var(--cs-border)!important; border-radius:18px!important; box-shadow:0 8px 28px rgba(21,33,59,.045); transition:transform .2s ease,box-shadow .2s ease; }
+.dashboard-stat-card:hover,.application-summary-card:hover,.admin-stat-card:hover,.stat-card:hover { transform:translateY(-4px);box-shadow:0 16px 34px rgba(21,33,59,.09); }
+.applications-section,.jobs-section,.dashboard-section { scroll-margin-top:90px; }
+.applications-section h2,.jobs-section h2,.dashboard-section h2 { letter-spacing:-.6px; }
+.btn { border-radius:10px; font-weight:600; }
+.card,.job-card,.application-card { border-radius:16px; }
+.cs-recommendations { margin:46px 0 12px; }
+.cs-section-heading { display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:20px; }
+.cs-eyebrow { color:var(--cs-primary);font-size:10px;font-weight:800;letter-spacing:1.8px; }
+.cs-section-heading h2 { font-size:clamp(22px,3vw,29px);font-weight:800;letter-spacing:-.8px;margin:6px 0; }
+.cs-section-heading p { color:var(--cs-muted);margin:0;font-size:14px; }
+.cs-recommendation-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px; }
+.cs-job-card { background:#fff;border:1px solid var(--cs-border);border-radius:18px;padding:21px;box-shadow:0 8px 25px rgba(21,33,59,.04);transition:.2s ease; }
+.cs-job-card:hover { transform:translateY(-4px);box-shadow:0 15px 35px rgba(21,33,59,.09); }
+.cs-job-top { display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; }
+.cs-company-mark { display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#edf1ff;color:#354fd0;font-size:18px;font-weight:800; }
+.cs-match-label { font-size:10px;font-weight:800;color:#16835b;background:#eaf8f1;padding:6px 9px;border-radius:30px; }
+.cs-job-card h3 { font-size:17px;font-weight:800;margin:0 0 4px; }
+.cs-company { color:var(--cs-muted);font-size:13px;margin-bottom:15px; }
+.cs-job-meta { display:flex;flex-wrap:wrap;gap:10px;color:#59677f;font-size:11px;margin-bottom:13px; }
+.cs-job-reason { font-size:12px;color:#65718a;line-height:1.6;min-height:38px; }
+.cs-empty { grid-column:1/-1;padding:22px;border:1px dashed #cbd3e2;border-radius:15px;color:#65718a;background:#fbfcff;font-size:13px; }
+.cs-error { color:#b42318; }
+.cs-assistant-launcher { position:fixed;right:24px;bottom:24px;z-index:1080;display:flex;align-items:center;gap:10px;padding:13px 18px;border:0;border-radius:999px;background:linear-gradient(135deg,#344fdb,#6879f2);color:#fff;font-weight:700;box-shadow:0 12px 32px rgba(52,79,219,.35);transition:transform .2s ease; }
+.cs-assistant-launcher:hover { transform:translateY(-3px); }
+.cs-assistant-launcher i { font-size:19px; }
+.cs-assistant-launcher.is-open { opacity:.85; }
+.cs-assistant-panel { position:fixed;right:24px;bottom:88px;z-index:1081;width:min(390px,calc(100vw - 28px));height:min(590px,calc(100vh - 120px));display:flex;flex-direction:column;overflow:hidden;border:1px solid #e1e6f0;border-radius:22px;background:#fff;box-shadow:0 24px 75px rgba(18,30,64,.22); }
+.cs-assistant-panel[hidden] { display:none; }
+.cs-chat-header { display:flex;align-items:center;gap:11px;padding:17px;background:linear-gradient(120deg,#172554,#3c57d9);color:#fff; }
+.cs-chat-avatar { display:grid;place-items:center;width:39px;height:39px;border-radius:13px;background:rgba(255,255,255,.16);font-size:19px; }
+.cs-chat-header strong,.cs-chat-header small { display:block; }
+.cs-chat-header strong { font-size:13px; }
+.cs-chat-header small { color:#d5ddff;font-size:10px;margin-top:3px; }
+.cs-online-dot { display:inline-block;width:7px;height:7px;border-radius:50%;background:#5ee0a0;margin-right:5px; }
+.cs-chat-close { margin-left:auto;border:0;background:transparent;color:#fff;font-size:17px; }
+.cs-chat-messages { flex:1;overflow:auto;padding:16px;background:#f7f8fc;display:flex;flex-direction:column;gap:10px; }
+.cs-chat-bubble { max-width:88%;padding:11px 13px;border-radius:15px;font-size:12px;line-height:1.6;white-space:pre-wrap; }
+.cs-bot { align-self:flex-start;background:#fff;border:1px solid #e7eaf1;color:#27344e;border-bottom-left-radius:5px; }
+.cs-user { align-self:flex-end;background:#405de6;color:#fff;border-bottom-right-radius:5px; }
+.cs-prompts { display:flex;gap:7px;overflow:auto;padding:10px 12px 0; }
+.cs-prompts button { flex:none;border:1px solid #dce3f5;border-radius:30px;background:#f5f7ff;color:#4054bc;padding:6px 9px;font-size:10px; }
+.cs-chat-form { display:flex;gap:8px;padding:12px;border-top:1px solid #edf0f5; }
+.cs-chat-form input { min-width:0;flex:1;border:1px solid #dfe4ed;border-radius:12px;padding:11px 12px;font-size:12px;outline:none; }
+.cs-chat-form input:focus { border-color:#7185ed;box-shadow:0 0 0 3px #eef0ff; }
+.cs-chat-form button { width:42px;border:0;border-radius:12px;background:#405de6;color:#fff; }
+.cs-chat-footnote { padding:0 13px 10px;color:#8791a4;font-size:9px;text-align:center; }
+@media(max-width:900px) { .cs-recommendation-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .cs-recommendation-grid { grid-template-columns:1fr; }.cs-section-heading { align-items:start;flex-direction:column; }.cs-assistant-launcher { right:14px;bottom:14px;padding:12px 15px; }.cs-assistant-panel { right:14px;bottom:76px;height:min(570px,calc(100vh - 100px)); } }
+@media(prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto!important;transition:none!important;animation:none!important; } }
+.dashboard-welcome .text-primary { color:#c5d2ff!important; }
+
+.cs-assistant-context { padding:10px 12px 0; background:#fff; }
+.cs-assistant-context label { display:block; margin-bottom:5px; color:#68758d; font-size:10px; font-weight:700; }
+.cs-assistant-context select { width:100%; min-height:36px; padding:7px 10px; border:1px solid #dfe4ed; border-radius:10px; color:#27344e; background:#fff; font-size:11px; }
+
+
+/* Subtle animated ambient background for the student experience. */
+body::before, body::after {
+  content: ""; position: fixed; z-index: -1; pointer-events: none; border-radius: 50%;
+  filter: blur(2px); opacity: .18; transform: translate3d(0,0,0);
+}
+body::before { width: 340px; height: 340px; top: 12%; right: -110px; background: radial-gradient(circle, #8297ff 0%, rgba(130,151,255,0) 70%); animation: cs-float-one 18s ease-in-out infinite alternate; }
+body::after { width: 300px; height: 300px; bottom: 4%; left: -100px; background: radial-gradient(circle, #62d6d1 0%, rgba(98,214,209,0) 70%); animation: cs-float-two 22s ease-in-out infinite alternate; }
+@keyframes cs-float-one { from { transform: translate3d(0,-18px,0) scale(.94); } to { transform: translate3d(-70px,45px,0) scale(1.12); } }
+@keyframes cs-float-two { from { transform: translate3d(0,20px,0) scale(1); } to { transform: translate3d(55px,-55px,0) scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { body::before, body::after { animation: none !important; } }
+
+/* Gentle depth on interactive dashboard cards (CSS 3D, no heavy WebGL dependency). */
+.application-card, .cs-job-card, .dashboard-stat-card, .card { transform-style: preserve-3d; transition: transform .28s ease, box-shadow .28s ease; }
+.application-card:hover, .cs-job-card:hover { transform: perspective(1100px) translateY(-5px) rotateX(.7deg) rotateY(-.5deg); box-shadow: 0 18px 38px rgba(25, 43, 92, .12); }
+@media (prefers-reduced-motion: reduce) { .application-card, .cs-job-card, .dashboard-stat-card, .card { transition: none !important; } .application-card:hover, .cs-job-card:hover { transform: none !important; } }
+
+
+/* Photo-led dashboard hero. This final override keeps the student photo visible on both dashboards. */
+.dashboard-welcome {
+  background-image: linear-gradient(90deg,rgba(13,31,79,.97) 0%,rgba(23,55,126,.90) 43%,rgba(23,55,126,.25) 100%),url("campus-students-hero.webp") !important;
+  background-size:cover !important; background-position:center 43% !important; min-height:220px;
+}
+.dashboard-welcome > div { position:relative; z-index:1; max-width:680px; }
+.dashboard-welcome:after {
+  content:""; position:absolute; width:260px; height:260px; border:1px solid rgba(255,255,255,.2);
+  border-radius:50%; right:5%; top:-115px; bottom:auto;
+  box-shadow:0 0 0 28px rgba(255,255,255,.045),0 0 0 58px rgba(255,255,255,.035);
+  animation:cs-hero-float 12s ease-in-out infinite alternate; pointer-events:none;
+}
+@keyframes cs-hero-float { from { transform:translate3d(0,0,0) scale(.96); } to { transform:translate3d(-22px,18px,0) scale(1.06); } }
+@media(max-width:575px) { .dashboard-welcome { min-height:205px; background-position:58% center!important; } }
+@media(prefers-reduced-motion:reduce) { .dashboard-welcome:after { animation:none!important; } }
