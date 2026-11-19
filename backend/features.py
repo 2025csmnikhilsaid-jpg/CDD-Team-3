@@ -1,6 +1,9 @@
 
 import os
 import secrets
+import json
+import urllib.error
+import urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
 from fastapi.responses import FileResponse
@@ -25,7 +28,8 @@ from database import (
     applications_collection,
     resumes_collection,
     interviews_collection,
-    notifications_collection
+    notifications_collection,
+    assistant_conversations_collection
 )
 
 # =========================================
@@ -343,6 +347,45 @@ def get_applicant_resume(
 
 
 # =========================================
+# RECRUITER APPLICATION PICKER (NO MANUAL ID ENTRY)
+# =========================================
+
+@router.get("/recruiters/me/applications")
+def recruiter_application_options(current_user: dict = Depends(get_current_user)):
+    require_role(current_user, ["recruiter"])
+    recruiter_oid = ObjectId(current_user["user_id"])
+    recruiter_jobs = list(jobs_collection.find({"recruiter_id": recruiter_oid}))
+    job_map = {str(job["_id"]): job for job in recruiter_jobs}
+    if not job_map:
+        return []
+    applications = applications_collection.find(
+        {"job_id": {"$in": [job["_id"] for job in recruiter_jobs]}}
+    ).sort("applied_at", -1)
+    options = []
+    for application in applications:
+        student = users_collection.find_one({"_id": application.get("student_id")}) or {}
+        job = job_map.get(str(application.get("job_id")), {})
+        application_code = application.get("application_code") or f"APP-{int(str(application['_id'])[-6:], 16):06d}"
+        if not application.get("application_code"):
+            applications_collection.update_one(
+                {"_id": application["_id"]},
+                {"$set": {"application_code": application_code}},
+            )
+        options.append({
+            "application_id": str(application["_id"]),
+            "application_code": application_code,
+            "student_name": student.get("full_name", "Student"),
+            "student_code": student.get("student_code", ""),
+            "student_email": student.get("email", ""),
+            "job_title": job.get("job_title", job.get("title", "Position")),
+            "company_name": job.get("company_name", job.get("company", "Company")),
+            "status": application.get("status", "Applied"),
+            "applied_at": application.get("applied_at").isoformat() if isinstance(application.get("applied_at"), datetime) else None,
+        })
+    return options
+
+
+# =========================================
 # SCHEDULE INTERVIEW
 # =========================================
 
@@ -353,15 +396,24 @@ def schedule_interview(
 ):
     require_role(current_user, ["recruiter"])
 
-    if not ObjectId.is_valid(interview.application_id):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid application ID."
-        )
+    supplied_reference = interview.application_id.strip()
+    if supplied_reference.upper().startswith("APP-"):
+        application = applications_collection.find_one({
+            "application_code": supplied_reference.upper()
+        })
+    elif ObjectId.is_valid(supplied_reference):
+        application = applications_collection.find_one({
+            "_id": ObjectId(supplied_reference)
+        })
+    else:
+        application = None
 
-    application = applications_collection.find_one({
-        "_id": ObjectId(interview.application_id)
-    })
+    if application and not application.get("application_code"):
+        application_code = f"APP-{int(str(application['_id'])[-6:], 16):06d}"
+        applications_collection.update_one(
+            {"_id": application["_id"]},
+            {"$set": {"application_code": application_code}},
+        )
 
     if not application:
         raise HTTPException(
@@ -452,7 +504,7 @@ def schedule_interview(
         {"_id": application["_id"]},
         {
             "$set": {
-                "status": "Shortlisted",
+                "status": "Interview Scheduled",
                 "updated_at": datetime.now(timezone.utc)
             }
         }
@@ -682,3 +734,212 @@ def mark_notification_read(
     return {
         "message": "Notification marked as read."
     }
+
+
+# =========================================
+# CAREERSPHERE AI STUDENT ASSISTANT
+# =========================================
+
+class AssistantMessage(BaseModel):
+    message: str
+    conversation_id: str | None = None
+    application_id: str | None = None
+
+
+def _assistant_fallback(message: str, student: dict, application_context: dict | None = None) -> str:
+    """Useful deterministic help when no external AI key is configured."""
+    text = message.lower()
+    if application_context:
+        status = str(application_context.get("status", "Applied"))
+        job_title = application_context.get("job_title", "your selected role")
+        company = application_context.get("company", "the company")
+        stage_guidance = {
+            "Applied": "Your application is submitted. Review the job description, practise the listed skills, prepare a role-specific introduction, and keep your resume and contact details current. Watch for recruiter updates.",
+            "Shortlisted": "You have been shortlisted. Prepare a 60-second introduction, revise the required technical skills, practise explaining your projects, research the company, and prepare thoughtful questions for the interviewer.",
+            "Interview Scheduled": "Your interview is scheduled. Review the date, time, meeting link or venue in My Interviews. Prepare a concise introduction, revise role-specific skills, practise project explanations, and prepare questions for the interviewer.",
+            "Selected": "Your application is marked selected. Check your notifications and contact the recruiter or placement office for the official offer, documentation, deadlines and joining instructions.",
+            "Rejected": "This application is marked rejected. Review the job requirements, identify skills to strengthen, request constructive feedback if appropriate, and use the experience to prepare for the next opportunity."
+        }
+        next_steps = stage_guidance.get(status, "Review the latest status in your dashboard and contact the recruiter or placement office if you need clarification.")
+        return (f"Application coaching · {job_title} at {company}\nCurrent stage: {status}\n\n{next_steps}\n\nI can guide you through resume alignment, technical preparation, HR questions, mock interviews and a focused preparation plan for this role. I cannot change recruiter decisions or guarantee an outcome.")
+    if any(word in text for word in ["resume", "cv"]):
+        return (
+            "For a stronger placement resume, keep it to one page if you are a fresher. "
+            "Use clear sections for education, projects, internships, technical skills, "
+            "certifications and achievements. Start bullet points with action verbs and "
+            "include measurable outcomes where possible. Upload your latest PDF or DOCX "
+            "resume in the Resume section of your student dashboard."
+        )
+    if any(word in text for word in ["interview", "hr round", "technical round"]):
+        return (
+            "A practical interview plan: (1) prepare a 60-second introduction, "
+            "(2) revise the fundamentals listed in the job description, (3) practise "
+            "explaining two projects with your exact contribution, (4) prepare examples "
+            "for teamwork and problem-solving, and (5) research the company. Practise "
+            "out loud and keep answers structured with Situation, Task, Action and Result."
+        )
+    if any(word in text for word in ["application", "shortlist", "status"]):
+        return (
+            "You can track each application in the My Applications section. Statuses "
+            "are updated by the recruiter or placement administrator. Check the "
+            "notification centre for changes, and make sure your contact details and "
+            "resume are current. I cannot change an application status on your behalf."
+        )
+    if any(word in text for word in ["cgpa", "eligib", "eligible"]):
+        return (
+            "Check the minimum CGPA, eligible department, graduation year and any "
+            "other criteria shown on the job card before applying. Your verified CGPA "
+            "is used when academic verification is enabled. If your marksheet is pending, "
+            "submit it through Academic Verification and contact your placement office "
+            "if the displayed details are incorrect."
+        )
+    if any(word in text for word in ["prepare", "placement", "roadmap", "study"]):
+        return (
+            "A balanced placement-preparation routine is: spend time each day on "
+            "problem-solving, revise core CS subjects, build and explain one or two "
+            "projects, practise communication, and take timed mock interviews. "
+            "Use the job description to prioritise topics. Set weekly goals and review "
+            "your progress every weekend."
+        )
+    return (
+        f"Hi {student.get('name') or 'there'}! I can help with resume preparation, "
+        "interview practice, placement preparation, application tracking and job "
+        "eligibility. Ask me a specific question and I will guide you. For live, "
+        "AI-generated answers, configure GOOGLE_API_KEY in your environment."
+    )
+
+
+def _generate_assistant_reply(message: str, student: dict, application_context: dict | None = None) -> str:
+    api_key = os.getenv("GOOGLE_API_KEY", "").strip()
+    if not api_key:
+        return _assistant_fallback(message, student, application_context)
+
+    model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+    prompt = (
+        "You are CareerSphere's student placement assistant. Help with resumes, "
+        "interviews, placement preparation and understanding this portal. Be clear, "
+        "supportive and practical. Never claim to have changed an application or "
+        "accessed data that was not supplied. Do not invent company openings, "
+        "deadlines, selection results or student records. If asked for live portal "
+        "data, direct the student to the relevant dashboard section. Keep answers "
+        "concise and structured.\n\n"
+        f"Student profile context: name={student.get('name') or 'Student'}, "
+        f"department={student.get('department') or 'not supplied'}, "
+        f"graduation year={student.get('graduation_year') or 'not supplied'}.\n"
+        f"Selected application context: {json.dumps(application_context or {}, default=str)}.\n\n"
+        "When an application is selected, guide the student through the current stage, "
+        "what that stage means, immediate next actions, preparation tasks, and what to do "
+        "if the status changes. Never claim to see unprovided recruiter decisions.\n\n"
+        f"Student question: {message}"
+    )
+    payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+    request = urllib.request.Request(
+        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+        data=payload,
+        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            result = json.loads(response.read().decode("utf-8"))
+        return result["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except (urllib.error.URLError, KeyError, IndexError, ValueError, TimeoutError):
+        return (
+            "I couldn't reach the AI service just now. Please try again in a moment. "
+            + _assistant_fallback(message, student, application_context)
+        )
+
+
+@router.post("/assistant/chat")
+def assistant_chat(
+    payload: AssistantMessage,
+    current_user: dict = Depends(get_current_user),
+):
+    require_role(current_user, ["student"])
+    message = payload.message.strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="Please enter a message.")
+    if len(message) > 2000:
+        raise HTTPException(status_code=413, detail="Message must be 2,000 characters or fewer.")
+
+    user_id = ObjectId(current_user["user_id"])
+    student = users_collection.find_one({"_id": user_id}) or {}
+    student_context = {
+        "name": student.get("full_name"),
+        "department": student.get("department"),
+        "graduation_year": student.get("graduation_year"),
+    }
+    application_context = None
+    if payload.application_id:
+        if not ObjectId.is_valid(payload.application_id):
+            raise HTTPException(status_code=400, detail="Invalid application selection.")
+        application = applications_collection.find_one({
+            "_id": ObjectId(payload.application_id),
+            "student_id": user_id,
+        })
+        if not application:
+            raise HTTPException(status_code=404, detail="That application was not found in your account.")
+        job = jobs_collection.find_one({"_id": application.get("job_id")}) or {}
+        application_context = {
+            "application_id": str(application["_id"]),
+            "job_title": job.get("job_title", job.get("title", "Position")),
+            "company": job.get("company_name", job.get("company", "Company")),
+            "status": application.get("status", "Applied"),
+            "applied_at": application.get("applied_at").isoformat() if isinstance(application.get("applied_at"), datetime) else None,
+            "minimum_cgpa": job.get("minimum_cgpa"),
+            "required_skills": job.get("required_skills", ""),
+            "description": job.get("description", ""),
+        }
+    reply = _generate_assistant_reply(message, student_context, application_context)
+    now = datetime.now(timezone.utc)
+
+    conversation_id = payload.conversation_id
+    if conversation_id and ObjectId.is_valid(conversation_id):
+        existing = assistant_conversations_collection.find_one({
+            "_id": ObjectId(conversation_id), "user_id": user_id
+        })
+    else:
+        existing = None
+
+    if existing:
+        assistant_conversations_collection.update_one(
+            {"_id": existing["_id"]},
+            {"$push": {"messages": {"$each": [
+                {"role": "user", "content": message, "created_at": now},
+                {"role": "assistant", "content": reply, "created_at": now},
+            ], "$slice": -60}}, "$set": {"updated_at": now}},
+        )
+        conversation_id = str(existing["_id"])
+    else:
+        result = assistant_conversations_collection.insert_one({
+            "user_id": user_id,
+            "messages": [
+                {"role": "user", "content": message, "created_at": now},
+                {"role": "assistant", "content": reply, "created_at": now},
+            ],
+            "created_at": now,
+            "updated_at": now,
+        })
+        conversation_id = str(result.inserted_id)
+
+    return {"reply": reply, "conversation_id": conversation_id}
+
+
+@router.get("/assistant/history")
+def assistant_history(current_user: dict = Depends(get_current_user)):
+    require_role(current_user, ["student"])
+    conversation = assistant_conversations_collection.find_one(
+        {"user_id": ObjectId(current_user["user_id"])},
+        sort=[("updated_at", -1)],
+    )
+    if not conversation:
+        return {"conversation_id": None, "messages": []}
+    messages = []
+    for item in conversation.get("messages", [])[-30:]:
+        messages.append({
+            "role": item.get("role"),
+            "content": item.get("content"),
+            "created_at": item.get("created_at").isoformat()
+            if isinstance(item.get("created_at"), datetime) else None,
+        })
+    return {"conversation_id": str(conversation["_id"]), "messages": messages}

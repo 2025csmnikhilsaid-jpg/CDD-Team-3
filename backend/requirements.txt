@@ -6,4 +6,3 @@ python-multipart
 pytest
 httpx
 python-jose[cryptography]
-python-multipart

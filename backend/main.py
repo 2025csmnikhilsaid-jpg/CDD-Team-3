@@ -1,4 +1,5 @@
 import hashlib
+import hmac
 import os
 import secrets
 import math
@@ -20,6 +21,7 @@ from database import (
     applications_collection,
     check_database_connection,
     jobs_collection,
+    interviews_collection,
     notifications_collection,
     users_collection,
 )
@@ -105,15 +107,24 @@ def save_marksheet_file(upload: UploadFile) -> dict:
 app = FastAPI(
     title="Intelligent Campus Placement Portal",
     description="A centralized platform for campus recruitment and placement management.",
-    version="2.2.0",
+    version="2.3.0",
 )
+
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "FRONTEND_ORIGINS",
+        "http://localhost:5501,http://127.0.0.1:5501",
+    ).split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=frontend_origins,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -159,6 +170,7 @@ def get_current_user(
         "role": user.get("role"),
         "department": user.get("department"),
         "graduation_year": user.get("graduation_year"),
+        "student_code": user.get("student_code"),
     }
 
 
@@ -321,9 +333,17 @@ def serialize_application(application: dict) -> dict:
     )
     applied_at = get_application_date(application)
 
+    application_code = application.get("application_code") or f"APP-{int(str(application['_id'])[-6:], 16):06d}"
+    if not application.get("application_code"):
+        applications_collection.update_one(
+            {"_id": application["_id"]},
+            {"$set": {"application_code": application_code}},
+        )
+
     return {
         "id": str(application["_id"]),
         "application_id": str(application["_id"]),
+        "application_code": application_code,
         "student_id": str(student_id),
         "student_name": student_name,
         "student_email": student_email,
@@ -345,6 +365,34 @@ def serialize_application(application: dict) -> dict:
         "status": application.get("status", "Applied"),
         "applied_at": applied_at,
         "date_applied": applied_at,
+        "application_deadline": job.get("application_deadline") if job else application.get("application_deadline"),
+    }
+
+
+def serialize_interview(interview: dict) -> dict:
+    student = find_by_id(users_collection, interview.get("student_id"))
+    job = find_by_id(jobs_collection, interview.get("job_id"))
+    scheduled_at = interview.get("scheduled_at")
+    if isinstance(scheduled_at, datetime):
+        scheduled_at = scheduled_at.isoformat()
+    return {
+        "id": str(interview["_id"]),
+        "application_id": str(interview.get("application_id", "")),
+        "application_code": interview.get("application_code", ""),
+        "student_id": str(interview.get("student_id", "")),
+        "student_name": student.get("full_name", "Student") if student else "Student",
+        "student_email": student.get("email", "") if student else "",
+        "recruiter_id": str(interview.get("recruiter_id", "")),
+        "job_id": str(interview.get("job_id", "")),
+        "job_title": job.get("job_title", job.get("title", "Interview")) if job else "Interview",
+        "company_name": job.get("company_name", job.get("company", "")) if job else "",
+        "scheduled_at": scheduled_at,
+        "interview_mode": interview.get("interview_mode", "Online"),
+        "meeting_link": interview.get("meeting_link", ""),
+        "location": interview.get("location", ""),
+        "notes": interview.get("notes", ""),
+        "status": interview.get("status", "Scheduled"),
+        "created_at": interview.get("created_at").isoformat() if isinstance(interview.get("created_at"), datetime) else interview.get("created_at"),
     }
 
 
@@ -383,7 +431,11 @@ def validate_job_values(values: dict) -> None:
 
 
 def get_recruiter_jobs(recruiter_id: str) -> list:
-    return list(jobs_collection.find({"recruiter_id": ObjectId(recruiter_id)}))
+    if not ObjectId.is_valid(str(recruiter_id)):
+        return []
+    return list(jobs_collection.find({
+        "recruiter_id": {"$in": [ObjectId(str(recruiter_id)), str(recruiter_id)]}
+    }))
 
 
 class UserCreate(BaseModel):
@@ -393,6 +445,7 @@ class UserCreate(BaseModel):
     role: str
     department: Optional[str] = None
     graduation_year: Optional[int] = None
+    admin_code: Optional[str] = None
 
 
 class JobCreate(BaseModel):
@@ -426,6 +479,15 @@ class ApplicationCreate(BaseModel):
     student_id: str
     job_id: str
     cgpa: Optional[float] = None
+
+
+class InterviewCreate(BaseModel):
+    application_id: str
+    scheduled_at: str
+    interview_mode: str = "Online"
+    meeting_link: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
 
 
 class AcademicVerificationUpdate(BaseModel):
@@ -462,11 +524,27 @@ def health_check():
 
 @app.post("/register")
 def register_user(user: UserCreate):
-    if user.role not in ["student", "recruiter"]:
+    if user.role not in ["student", "recruiter", "admin"]:
         raise HTTPException(
             status_code=400,
-            detail="Public registration is available only for students and recruiters.",
+            detail="Select a valid account type.",
         )
+
+    if user.role == "admin":
+        configured_admin_code = os.getenv("ADMIN_REGISTRATION_CODE", "").strip()
+        supplied_admin_code = (user.admin_code or "").strip()
+        if not configured_admin_code:
+            raise HTTPException(
+                status_code=403,
+                detail="Administrator self-registration is disabled. Configure ADMIN_REGISTRATION_CODE on the server first.",
+            )
+        if not supplied_admin_code or not hmac.compare_digest(
+            supplied_admin_code, configured_admin_code
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="The administrator registration code is incorrect.",
+            )
 
     if not user.full_name.strip() or len(user.password) < 8:
         raise HTTPException(
@@ -551,7 +629,10 @@ def register_student_with_marksheet(
     saved = save_marksheet_file(marksheet)
     now = datetime.now(timezone.utc)
 
+    student_code = f"CS-{datetime.now(timezone.utc).year}-{secrets.token_hex(3).upper()}"
+
     student_data = {
+        "student_code": student_code,
         "full_name": full_name.strip(),
         "email": normalized_email,
         "password": hash_password(password),
@@ -583,6 +664,7 @@ def register_student_with_marksheet(
         "email": normalized_email,
         "role": "student",
         "academic_verification_status": "Pending",
+        "student_code": student_code,
     }
 
 
@@ -606,6 +688,7 @@ def login_user(email: EmailStr, password: str):
         "role": user.get("role"),
         "department": user.get("department"),
         "graduation_year": user.get("graduation_year"),
+        "student_code": user.get("student_code"),
     }
 
 
@@ -620,6 +703,13 @@ def get_student_profile(current_user: dict = Depends(get_current_user)):
     student = users_collection.find_one(
         {"_id": ObjectId(current_user["user_id"])}
     ) or {}
+    if not student.get("student_code"):
+        generated_code = f"CS-{datetime.now(timezone.utc).year}-{secrets.token_hex(3).upper()}"
+        users_collection.update_one(
+            {"_id": ObjectId(current_user["user_id"])},
+            {"$set": {"student_code": generated_code}},
+        )
+        student["student_code"] = generated_code
 
     return {
         "id": current_user["user_id"],
@@ -628,6 +718,7 @@ def get_student_profile(current_user: dict = Depends(get_current_user)):
         "role": current_user["role"],
         "department": current_user["department"],
         "graduation_year": current_user["graduation_year"],
+        "student_code": student.get("student_code"),
         "declared_cgpa": student.get("declared_cgpa"),
         "verified_cgpa": student.get("verified_cgpa"),
         "academic_verification_status": student.get(
@@ -965,6 +1056,49 @@ def get_all_jobs():
     return [serialize_job(job) for job in jobs]
 
 
+@app.get("/students/me/recommended-jobs")
+def recommended_jobs(current_user: dict = Depends(get_current_user)):
+    """Recommend jobs using explicit eligibility/profile fields only (not skill-gap analysis)."""
+    require_role(current_user, ["student"])
+    student = users_collection.find_one({"_id": ObjectId(current_user["user_id"])}) or {}
+    department = str(student.get("department") or "").strip().lower()
+    graduation_year = str(student.get("graduation_year") or "").strip()
+    cgpa_value = student.get("verified_cgpa")
+    if cgpa_value is None:
+        cgpa_value = student.get("declared_cgpa")
+    try:
+        cgpa_value = float(cgpa_value) if cgpa_value is not None else None
+    except (TypeError, ValueError):
+        cgpa_value = None
+
+    recommendations = []
+    for job in jobs_collection.find().sort("created_at", -1):
+        status = str(job.get("status", "open")).lower()
+        if status not in {"open", "active", "published", ""}:
+            continue
+        eligible_department = str(job.get("eligible_department", job.get("department", "all")) or "all").strip().lower()
+        required_year = job.get("eligible_graduation_year", job.get("graduation_year"))
+        minimum_cgpa = job.get("minimum_cgpa")
+        try:
+            minimum_cgpa = float(minimum_cgpa or 0)
+        except (TypeError, ValueError):
+            minimum_cgpa = 0.0
+        if eligible_department not in {"all", "any", "", "all departments"}:
+            if not department or eligible_department != department:
+                continue
+        if required_year not in (None, "", "all", "Any"):
+            if not graduation_year or str(required_year) != graduation_year:
+                continue
+        if minimum_cgpa > 0 and cgpa_value is None:
+            continue
+        if cgpa_value is not None and cgpa_value < minimum_cgpa:
+            continue
+        item = serialize_job(job)
+        item["recommendation_reason"] = "Matches your available profile and the job's stated eligibility criteria."
+        recommendations.append(item)
+    return recommendations[:12]
+
+
 @app.put("/jobs/{job_id}")
 def update_job(
     job_id: str,
@@ -1080,11 +1214,9 @@ def get_recruiter_job_list(
     require_role(current_user, ["recruiter"])
     verify_owner(current_user, recruiter_id)
 
-    jobs = list(
-        jobs_collection.find({"recruiter_id": ObjectId(recruiter_id)}).sort(
-            "created_at", -1
-        )
-    )
+    jobs = list(jobs_collection.find({
+        "recruiter_id": {"$in": [ObjectId(recruiter_id), recruiter_id]}
+    }).sort("created_at", -1))
 
     results = []
 
@@ -1240,6 +1372,11 @@ def apply_for_job(
 
     try:
         result = applications_collection.insert_one(new_application)
+        application_code = f"APP-{int(str(result.inserted_id)[-6:], 16):06d}"
+        applications_collection.update_one(
+            {"_id": result.inserted_id},
+            {"$set": {"application_code": application_code}},
+        )
     except DuplicateKeyError:
         raise HTTPException(
             status_code=400,
@@ -1259,6 +1396,7 @@ def apply_for_job(
     return {
         "message": "Application submitted successfully",
         "application_id": str(result.inserted_id),
+        "application_code": application_code,
         "status": "Applied",
     }
 
@@ -1303,6 +1441,7 @@ def update_application_status(
     allowed_statuses = [
         "Applied",
         "Shortlisted",
+        "Interview Scheduled",
         "Selected",
         "Rejected",
     ]
@@ -1310,7 +1449,7 @@ def update_application_status(
     if requested_status not in allowed_statuses:
         raise HTTPException(
             status_code=400,
-            detail="Invalid status. Choose Applied, Shortlisted, Selected or Rejected.",
+            detail="Invalid status. Choose Applied, Shortlisted, Interview Scheduled, Selected or Rejected.",
         )
 
     application = applications_collection.find_one(
@@ -1403,6 +1542,111 @@ def update_application_status(
     }
 
 
+@app.post("/interviews")
+def create_interview(
+    interview: InterviewCreate,
+    current_user: dict = Depends(get_current_user),
+):
+    require_role(current_user, ["recruiter"])
+
+    application = None
+    application_ref = interview.application_id.strip()
+    if ObjectId.is_valid(application_ref):
+        application = applications_collection.find_one({"_id": ObjectId(application_ref)})
+    if application is None:
+        application = applications_collection.find_one({"application_code": application_ref.upper()})
+
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found. Refresh the applicant list and try again.")
+
+    job = find_by_id(jobs_collection, application.get("job_id"))
+    if not job:
+        raise HTTPException(status_code=404, detail="The job for this application was not found.")
+    if get_job_recruiter_id(job) != current_user["user_id"]:
+        raise HTTPException(status_code=403, detail="You can schedule interviews only for applicants to your own jobs.")
+
+    try:
+        scheduled_at = datetime.fromisoformat(interview.scheduled_at.replace("Z", "+00:00"))
+        if scheduled_at.tzinfo is None:
+            scheduled_at = scheduled_at.replace(tzinfo=timezone.utc)
+        scheduled_at = scheduled_at.astimezone(timezone.utc)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail="Enter a valid interview date and time.")
+
+    if scheduled_at <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Interview date and time must be in the future.")
+
+    mode = interview.interview_mode.strip().title()
+    if mode not in {"Online", "Offline"}:
+        raise HTTPException(status_code=400, detail="Interview mode must be Online or Offline.")
+
+    meeting_link = (interview.meeting_link or "").strip()
+    location = (interview.location or "").strip()
+    if mode == "Online" and meeting_link:
+        from urllib.parse import urlparse
+        parsed = urlparse(meeting_link)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+            raise HTTPException(status_code=400, detail="Enter a valid HTTP or HTTPS meeting link.")
+    if mode == "Offline" and not location:
+        raise HTTPException(status_code=400, detail="Enter the venue for an offline interview.")
+
+    existing = interviews_collection.find_one({
+        "application_id": application["_id"],
+        "status": {"$ne": "Cancelled"},
+    })
+    if existing:
+        raise HTTPException(status_code=409, detail="An interview is already scheduled for this application.")
+
+    record = {
+        "application_id": application["_id"],
+        "application_code": application.get("application_code", ""),
+        "student_id": application["student_id"],
+        "recruiter_id": ObjectId(current_user["user_id"]),
+        "job_id": application["job_id"],
+        "scheduled_at": scheduled_at,
+        "interview_mode": mode,
+        "meeting_link": meeting_link,
+        "location": location,
+        "notes": (interview.notes or "").strip(),
+        "status": "Scheduled",
+        "created_at": datetime.now(timezone.utc),
+    }
+    result = interviews_collection.insert_one(record)
+    applications_collection.update_one(
+        {"_id": application["_id"]},
+        {"$set": {"status": "Interview Scheduled", "updated_at": datetime.now(timezone.utc)}},
+    )
+    create_application_notification(
+        str(application["student_id"]),
+        "Interview Scheduled",
+        f"Your interview for {job.get('job_title', 'the position')} at {job.get('company_name', 'the company')} is scheduled for {scheduled_at.astimezone().strftime('%d %b %Y, %I:%M %p')}.",
+    )
+    saved = interviews_collection.find_one({"_id": result.inserted_id})
+    return {"message": "Interview scheduled successfully.", "interview": serialize_interview(saved)}
+
+
+@app.get("/recruiters/{recruiter_id}/interviews")
+def get_recruiter_interviews(
+    recruiter_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    require_role(current_user, ["recruiter"])
+    verify_owner(current_user, recruiter_id)
+    records = interviews_collection.find({"recruiter_id": ObjectId(recruiter_id)}).sort("scheduled_at", 1)
+    return {"interviews": [serialize_interview(item) for item in records]}
+
+
+@app.get("/students/{student_id}/interviews")
+def get_student_interviews(
+    student_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    require_role(current_user, ["student"])
+    verify_owner(current_user, student_id)
+    records = interviews_collection.find({"student_id": ObjectId(student_id)}).sort("scheduled_at", 1)
+    return {"interviews": [serialize_interview(item) for item in records]}
+
+
 @app.get("/admin/dashboard")
 def admin_dashboard(current_user: dict = Depends(get_current_user)):
     require_role(current_user, ["admin"])
@@ -1419,7 +1663,7 @@ def admin_dashboard(current_user: dict = Depends(get_current_user)):
         {"status": "Selected"}
     )
     pending = applications_collection.count_documents(
-        {"status": {"$in": ["Applied", "Pending"]}}
+        {"status": {"$in": ["Applied", "Pending", "Interview Scheduled"]}}
     )
 
     return {

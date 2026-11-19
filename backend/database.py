@@ -36,6 +36,7 @@ resumes_collection = database["resumes"]
 interviews_collection = database["interviews"]
 
 notifications_collection = database["notifications"]
+assistant_conversations_collection = database["assistant_conversations"]
 
 
 # =========================================
@@ -46,6 +47,13 @@ notifications_collection = database["notifications"]
 users_collection.create_index(
     [("email", ASCENDING)],
     unique=True
+)
+
+# Stable, human-readable student reference code (older records may not have one).
+users_collection.create_index(
+    [("student_code", ASCENDING)],
+    unique=True,
+    sparse=True,
 )
 
 # Prevent students from applying to the same job twice
@@ -95,6 +103,11 @@ interviews_collection.create_index(
 
 interviews_collection.create_index(
     [("scheduled_at", ASCENDING)]
+)
+
+# Assistant conversation lookup
+assistant_conversations_collection.create_index(
+    [("user_id", ASCENDING), ("updated_at", DESCENDING)]
 )
 
 # Notification lookup
