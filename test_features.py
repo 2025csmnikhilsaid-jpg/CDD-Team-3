@@ -405,3 +405,15 @@ def test_mark_nonexistent_notification_as_read():
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Notification not found."
+
+
+def test_assistant_fallback_gives_resume_guidance():
+    reply = features._assistant_fallback("How do I improve my resume?", {"name": "Test Student"})
+    assert "resume" in reply.lower()
+    assert "projects" in reply.lower()
+
+
+def test_assistant_fallback_gives_interview_guidance():
+    reply = features._assistant_fallback("How should I prepare for interviews?", {"name": "Test Student"})
+    assert "interview" in reply.lower()
+    assert "projects" in reply.lower()
