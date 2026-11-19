@@ -1,4 +1,3 @@
-# CDD-Team-3
 
 # Intelligent Campus Placement Portal
 
