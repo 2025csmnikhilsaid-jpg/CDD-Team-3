@@ -1,0 +1,217 @@
+/* CareerSphere Expo Edition — premium visual layer */
+:root{
+  --cs-ink:#101a38;--cs-muted:#68738e;--cs-blue:#4263eb;--cs-violet:#7657e8;
+  --cs-cyan:#24c6dc;--cs-line:rgba(115,133,180,.18);--cs-glass:rgba(255,255,255,.82);
+  --cs-shadow:0 18px 50px rgba(34,51,104,.10);--cs-radius:22px;
+}
+html{scroll-behavior:smooth}
+body{font-family:Inter,ui-sans-serif,system-ui,sans-serif!important;color:var(--cs-ink);background:
+ radial-gradient(ellipse at 8% 8%,rgba(73,126,255,.12),transparent 34%),
+ radial-gradient(ellipse at 94% 20%,rgba(149,91,255,.10),transparent 30%),
+ linear-gradient(135deg,#f7f9ff 0%,#f4f7ff 48%,#fbfaff 100%)!important;background-attachment:fixed}
+::selection{background:rgba(92,105,238,.2)}
+a{transition:color .2s ease}
+.btn{border-radius:12px!important;font-weight:700!important;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease!important}
+.btn:hover{transform:translateY(-2px);filter:saturate(1.12)}
+.btn-primary,.btn-primary-custom{background:linear-gradient(115deg,#355fe8,#7958e9)!important;border:0!important;box-shadow:0 10px 24px rgba(75,91,221,.24)!important}
+.form-control,.form-select,textarea{border:1px solid #dce3f3!important;border-radius:13px!important;padding:.78rem .95rem!important;box-shadow:none!important;transition:border-color .2s,box-shadow .2s,background .2s!important}
+.form-control:focus,.form-select:focus,textarea:focus{border-color:#7186f5!important;box-shadow:0 0 0 4px rgba(91,112,239,.12)!important;background:#fff!important}
+.card,.dashboard-stat-card,.application-summary-card,.stat-card,.admin-stat-card,.dashboard-section,.applications-section,.jobs-section{border:1px solid var(--cs-line)!important;border-radius:var(--cs-radius)!important;box-shadow:var(--cs-shadow)!important;transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.card:hover,.dashboard-stat-card:hover,.application-summary-card:hover,.stat-card:hover,.admin-stat-card:hover{transform:translateY(-5px);box-shadow:0 24px 55px rgba(34,51,104,.15)!important;border-color:rgba(102,122,238,.32)!important}
+.dashboard-navbar,.main-navbar{background:rgba(255,255,255,.82)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(124,142,190,.18)!important;box-shadow:0 8px 30px rgba(36,52,102,.06)!important;position:sticky;top:0;z-index:1000}
+.dashboard-navbar .navbar-brand,.main-navbar .navbar-brand{font-weight:850!important;letter-spacing:-.7px}
+.dashboard-container{padding-top:34px!important;padding-bottom:76px!important}
+.dashboard-welcome{position:relative;overflow:hidden!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:28px!important;padding:clamp(28px,4vw,48px)!important;background:linear-gradient(118deg,#101c49 0%,#2949a8 48%,#7255dc 100%)!important;box-shadow:0 24px 60px rgba(41,65,158,.24)!important;color:#fff!important}
+.dashboard-welcome:before,.dashboard-welcome:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.dashboard-welcome:before{width:340px;height:340px;right:-80px;top:-190px;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 35px rgba(255,255,255,.045),0 0 0 75px rgba(255,255,255,.035)}
+.dashboard-welcome:after{width:170px;height:170px;right:17%;bottom:-135px;background:rgba(64,209,238,.16);filter:blur(2px)}
+.dashboard-welcome>*{position:relative;z-index:1}
+.dashboard-welcome h1,.dashboard-welcome h2{color:#fff!important;font-weight:850!important;letter-spacing:-1.2px}
+.dashboard-welcome p{color:rgba(255,255,255,.82)!important;max-width:760px}
+.dashboard-welcome .text-uppercase,.dashboard-welcome .text-primary{color:#b9d5ff!important;letter-spacing:2px}
+.dashboard-statistics,.dashboard-stats{gap:0}
+.dashboard-stat-card,.application-summary-card,.stat-card,.admin-stat-card{background:rgba(255,255,255,.88)!important;backdrop-filter:blur(12px);border-radius:20px!important}
+.dashboard-stat-card i,.stat-icon,.application-summary-icon{border-radius:15px!important;background:linear-gradient(145deg,#eaf0ff,#f2edff)!important;color:#4e60d8!important;box-shadow:inset 0 1px 0 #fff}
+.dashboard-stat-card h2,.application-summary-card h3,.stat-card h2,.admin-stat-card h3{font-weight:850!important;letter-spacing:-1px;color:#15234c!important}
+.applications-section,.jobs-section,.dashboard-section{background:rgba(255,255,255,.62);border:1px solid rgba(115,133,180,.13);border-radius:24px;padding:clamp(18px,2.5vw,30px);box-shadow:0 12px 35px rgba(34,51,104,.055)}
+.applications-section h2,.jobs-section h2,.dashboard-section h2{font-weight:850;letter-spacing:-.7px;color:#15234c}
+.applications-section .text-primary,.jobs-section .text-primary{letter-spacing:1.7px}
+#applicationsContainer>.card,#jobsContainer>.card,#jobsContainer .card{overflow:hidden;border-radius:19px!important}
+.alert{border:1px solid transparent!important;border-radius:14px!important;padding:14px 18px!important}
+.badge{border-radius:999px!important;padding:.48em .8em!important}
+/* Landing page: editorial hero and product preview */
+.hero-section{position:relative;overflow:hidden;padding:clamp(64px,9vw,116px) 0 86px!important;background:radial-gradient(ellipse at 80% 28%,rgba(112,92,236,.18),transparent 34%),linear-gradient(135deg,#f7f9ff,#edf3ff 56%,#f8f5ff)!important}
+.hero-section:before{content:"";position:absolute;width:480px;height:480px;border-radius:50%;right:-190px;top:-210px;border:1px solid rgba(89,108,213,.15);box-shadow:0 0 0 42px rgba(89,108,213,.035),0 0 0 92px rgba(89,108,213,.025)}
+.hero-content,.hero-visual{position:relative;z-index:1}
+.hero-label{display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(79,105,219,.18);background:rgba(255,255,255,.75);border-radius:999px;padding:10px 16px;color:#4258c5;font-weight:800;font-size:11px;letter-spacing:1.8px;box-shadow:0 8px 24px rgba(40,61,133,.07)}
+.hero-label-dot{width:8px;height:8px;border-radius:50%;background:#22c99a;box-shadow:0 0 0 5px rgba(34,201,154,.13)}
+.hero-content h1{font-size:clamp(42px,6vw,72px)!important;line-height:1.04!important;letter-spacing:-3.5px!important;font-weight:900!important;color:#121e43!important;margin:24px 0!important}
+.hero-content h1 span{display:block;background:linear-gradient(100deg,#4263eb,#8b5ce7);-webkit-background-clip:text;background-clip:text;color:transparent!important}
+.hero-description{font-size:17px!important;line-height:1.8!important;color:#65708b!important;max-width:570px}
+.hero-button{padding:14px 20px!important;border-radius:14px!important}
+.hero-benefits{display:grid;gap:10px;margin-top:26px;color:#53617e;font-size:13px;font-weight:650}
+.hero-benefits i{color:#19b98b;margin-right:8px}
+.dashboard-preview{border:1px solid rgba(255,255,255,.85)!important;border-radius:24px!important;background:rgba(255,255,255,.76)!important;backdrop-filter:blur(18px);box-shadow:0 35px 90px rgba(39,58,132,.20)!important;transform:perspective(1200px) rotateY(-5deg) rotateX(2deg);transition:transform .35s ease}
+.dashboard-preview:hover{transform:perspective(1200px) rotateY(0) rotateX(0) translateY(-6px)}
+.preview-header{border-bottom:1px solid rgba(117,134,183,.16)!important}
+/* Auth pages */
+.auth-body{background:radial-gradient(ellipse at 12% 10%,rgba(73,126,255,.15),transparent 35%),radial-gradient(ellipse at 90% 85%,rgba(149,91,255,.13),transparent 34%),#f5f7ff!important}
+.auth-navbar{background:rgba(255,255,255,.78)!important;backdrop-filter:blur(16px);border-bottom:1px solid var(--cs-line)!important}
+.auth-card,.auth-container,.register-card,.login-card{border-radius:24px!important;box-shadow:0 25px 70px rgba(38,56,120,.13)!important;border:1px solid rgba(255,255,255,.9)!important}
+/* Admin control room */
+.admin-dashboard-page main{max-width:1800px}
+.admin-dashboard-page .dashboard-welcome{margin-top:12px}
+.admin-dashboard-page .admin-stat-card{min-height:112px}
+.admin-dashboard-page section>h4{font-weight:850!important;letter-spacing:-.5px;color:#18264e}
+/* dynamic panels injected by feature modules */
+.cs-dynamic-feature-panel .card{border-radius:22px!important;overflow:hidden}
+.cs-dynamic-feature-panel .card-header{background:linear-gradient(100deg,#f0f4ff,#f8f4ff)!important;border-bottom:1px solid #e5eafd!important;font-weight:800}
+/* Responsive refinements */
+@media(max-width:767.98px){.dashboard-container{padding-top:18px!important}.dashboard-welcome{border-radius:21px!important;padding:25px!important}.hero-content h1{letter-spacing:-2px!important}.dashboard-preview{transform:none}.applications-section,.jobs-section,.dashboard-section{padding:17px;border-radius:19px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Expo showcase polish: clearer interview workflow and richer dashboard rhythm */
+.dashboard-navbar .text-white,
+.dashboard-navbar .navbar-brand,
+.dashboard-navbar .navbar-brand i { color: #24345f !important; }
+.dashboard-navbar .btn-outline-light {
+  color: #4259c9 !important;
+  border-color: rgba(75, 96, 190, .28) !important;
+  background: rgba(255,255,255,.72) !important;
+}
+.dashboard-navbar .btn-outline-light:hover {
+  color: #fff !important;
+  background: linear-gradient(115deg,#355fe8,#7958e9) !important;
+}
+.cs-dynamic-feature-panel { animation: csPanelEnter .55s both; }
+.cs-dynamic-feature-panel .card {
+  background: rgba(255,255,255,.88) !important;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 48px rgba(34,51,104,.09) !important;
+}
+.cs-dynamic-feature-panel .card-body { padding: clamp(20px,3vw,34px) !important; }
+.cs-dynamic-feature-panel .card-body > h3 {
+  color: #172650; font-size: clamp(1.35rem,2vw,1.8rem);
+  font-weight: 850; letter-spacing: -.7px;
+}
+.cs-dynamic-feature-panel .card-body > p { color: #6c7895 !important; }
+.cs-interview-form {
+  display: grid; grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 5px 18px; align-items: start;
+}
+.cs-interview-form > .mb-3 { margin-bottom: 12px !important; min-width: 0; }
+.cs-interview-form > .mb-3:first-child,
+.cs-interview-form > .mb-3:nth-child(6),
+.cs-interview-form > button[type="submit"] { grid-column: 1 / -1; }
+.cs-interview-form .form-label {
+  color: #25345f; font-size: .9rem; font-weight: 750; margin-bottom: 8px;
+}
+.cs-interview-form .form-text { color: #75809b; }
+.cs-interview-form textarea { min-height: 92px; }
+.cs-interview-form button[type="submit"] {
+  justify-self: start; padding: 12px 22px !important;
+  background: linear-gradient(115deg,#355fe8,#7958e9) !important;
+}
+.cs-dynamic-feature-panel .feature-content > .alert { margin-top: 12px; }
+.cs-dynamic-feature-panel .feature-content h5 {
+  color: #1c2b55; font-weight: 850; letter-spacing: -.35px;
+}
+.cs-dynamic-feature-panel .feature-content .list-group-item,
+.cs-dynamic-feature-panel .feature-content .card {
+  border-radius: 14px !important; border: 1px solid #e7ebf6 !important;
+}
+.dashboard-container > section:not(.dashboard-welcome) { animation: csPanelEnter .6s both; }
+.dashboard-container > section:nth-of-type(2) { animation-delay: .04s; }
+.dashboard-container > section:nth-of-type(3) { animation-delay: .08s; }
+.dashboard-container > section:nth-of-type(4) { animation-delay: .12s; }
+.table { --bs-table-bg: transparent; }
+.table thead th {
+  color: #5b6787; font-size: .78rem; text-transform: uppercase;
+  letter-spacing: .8px; border-bottom-color: #e7ebf5;
+}
+.table tbody td { color: #34415f; vertical-align: middle; }
+@keyframes csPanelEnter {
+  from { opacity: 0; transform: translateY(13px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media(max-width:767.98px) {
+  .cs-interview-form { grid-template-columns: 1fr; gap: 0; }
+  .cs-interview-form > .mb-3,
+  .cs-interview-form > .mb-3:first-child,
+  .cs-interview-form > .mb-3:nth-child(6),
+  .cs-interview-form > button[type="submit"] { grid-column: 1; }
+  .dashboard-navbar .container-fluid { padding-left: 14px !important; padding-right: 14px !important; }
+}
+
+
+/* Role-specific photographic hero panels for the expo demo */
+.student-dashboard-page .dashboard-welcome{
+  background-image:linear-gradient(100deg,rgba(8,22,58,.92) 0%,rgba(14,37,86,.76) 46%,rgba(20,43,86,.30) 100%),url("student-campus-hero.webp")!important;
+  background-size:cover!important;background-position:center 43%!important;min-height:250px;
+}
+.recruiter-dashboard-page .dashboard-welcome{
+  background-image:linear-gradient(100deg,rgba(8,20,48,.94) 0%,rgba(13,34,72,.80) 48%,rgba(12,29,57,.28) 100%),url("recruiter-office-hero.webp")!important;
+  background-size:cover!important;background-position:center 42%!important;min-height:250px;
+}
+.admin-dashboard-page .dashboard-welcome{
+  background-image:linear-gradient(100deg,rgba(4,17,48,.94) 0%,rgba(5,34,82,.77) 52%,rgba(7,38,91,.30) 100%),url("admin-control-room-hero.webp")!important;
+  background-size:cover!important;background-position:center 46%!important;min-height:250px;
+}
+.student-dashboard-page .dashboard-welcome:before,.recruiter-dashboard-page .dashboard-welcome:before,.admin-dashboard-page .dashboard-welcome:before{
+  border-color:rgba(255,255,255,.22);box-shadow:0 0 0 38px rgba(255,255,255,.055),0 0 0 82px rgba(255,255,255,.035);
+}
+.cs-interview-form{background:linear-gradient(135deg,rgba(246,248,255,.96),rgba(250,247,255,.92));border:1px solid rgba(105,124,190,.18);border-radius:20px;padding:clamp(16px,2.5vw,26px);}
+.cs-interview-form .form-label{font-weight:750;color:#26365f;margin-bottom:7px}
+.cs-interview-form .form-text{color:#71809f}
+.cs-interview-form button[type=submit]{min-height:48px;padding-inline:24px}
+.cs-interview-list-card{background:rgba(255,255,255,.92);border:1px solid rgba(108,128,188,.18);border-radius:17px;padding:17px 19px;margin-bottom:12px;box-shadow:0 10px 28px rgba(35,52,105,.07)}
+@media(max-width:767.98px){.student-dashboard-page .dashboard-welcome,.recruiter-dashboard-page .dashboard-welcome,.admin-dashboard-page .dashboard-welcome{min-height:220px;background-position:center!important}}
+
+
+/* Final expo refinement: keep utility panels at the bottom and let the
+   role-specific photographs read clearly instead of hiding them under a
+   heavy dark wash. */
+.cs-bottom-feature-panel {
+  width: min(100% - 24px, 1320px) !important;
+  max-width: 1320px !important;
+  margin: 34px auto 24px !important;
+}
+.cs-bottom-feature-panel > .card {
+  border: 1px solid rgba(116, 137, 190, .20) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 16px 42px rgba(31, 48, 96, .09) !important;
+}
+.cs-bottom-feature-panel h3 {
+  font-weight: 800 !important;
+  color: #1d2b50 !important;
+}
+.student-dashboard-page .dashboard-welcome {
+  background-image: linear-gradient(100deg, rgba(8, 22, 48, .56) 0%, rgba(14, 37, 76, .30) 48%, rgba(20, 43, 86, .08) 100%), url("student-campus-hero.webp") !important;
+  background-size: cover !important;
+  background-position: center 43% !important;
+  min-height: 310px !important;
+}
+.recruiter-dashboard-page .dashboard-welcome {
+  background-image: linear-gradient(100deg, rgba(8, 20, 48, .58) 0%, rgba(13, 34, 72, .30) 48%, rgba(12, 29, 57, .08) 100%), url("recruiter-office-hero.webp") !important;
+  background-size: cover !important;
+  background-position: center 42% !important;
+  min-height: 310px !important;
+}
+.admin-dashboard-page .dashboard-welcome {
+  background-image: linear-gradient(100deg, rgba(4, 17, 48, .60) 0%, rgba(5, 34, 82, .32) 52%, rgba(7, 38, 91, .08) 100%), url("admin-control-room-hero.webp") !important;
+  background-size: cover !important;
+  background-position: center 46% !important;
+  min-height: 310px !important;
+}
+.student-dashboard-page .dashboard-welcome:before,
+.recruiter-dashboard-page .dashboard-welcome:before,
+.admin-dashboard-page .dashboard-welcome:before {
+  border-color: rgba(255,255,255,.14) !important;
+  box-shadow: 0 0 0 38px rgba(255,255,255,.025), 0 0 0 82px rgba(255,255,255,.018) !important;
+}
+@media (max-width: 767.98px) {
+  .student-dashboard-page .dashboard-welcome,
+  .recruiter-dashboard-page .dashboard-welcome,
+  .admin-dashboard-page .dashboard-welcome { min-height: 245px !important; }
+  .cs-bottom-feature-panel { width: calc(100% - 20px) !important; }
+}

@@ -1,0 +1,451 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Account | CareerSphere</title>
+    <meta name="description" content="Create your CareerSphere account and begin your campus placement journey.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="expo-ui.css?v=20261119-expo2">
+</head>
+
+<body class="auth-body register-page">
+
+    <!-- Navigation -->
+    <nav class="auth-navbar">
+
+        <a href="index.html" class="brand-logo">
+            <i class="bi bi-mortarboard-fill"></i>
+            CareerSphere
+        </a>
+
+        <a href="index.html" class="back-home">
+            <i class="bi bi-arrow-left"></i>
+            Back to Home
+        </a>
+
+    </nav>
+
+
+    <!-- Registration Section -->
+    <main class="auth-main">
+
+        <div class="auth-layout">
+
+            <!-- Left Information Panel -->
+            <section class="auth-information">
+
+                <div class="auth-information-content">
+
+                    <span class="auth-eyebrow">
+                        JOIN CAREERSPHERE
+                    </span>
+
+                    <h1>
+                        Start Your Placement Journey Today.
+                    </h1>
+
+                    <p>
+                        Create your account and become part of a smarter
+                        campus recruitment experience. Connect with
+                        opportunities and move closer to your career goals.
+                    </p>
+
+                    <div class="auth-benefit-list">
+
+                        <div class="auth-benefit">
+                            <span>
+                                <i class="bi bi-person-check"></i>
+                            </span>
+
+                            <div>
+                                <strong>Personalized Experience</strong>
+                                <p>Create a profile based on your academic and professional details.</p>
+                            </div>
+                        </div>
+
+                        <div class="auth-benefit">
+                            <span>
+                                <i class="bi bi-briefcase"></i>
+                            </span>
+
+                            <div>
+                                <strong>Explore Opportunities</strong>
+                                <p>Discover relevant placement opportunities and connect with recruiters.</p>
+                            </div>
+                        </div>
+
+                        <div class="auth-benefit">
+                            <span>
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </span>
+
+                            <div>
+                                <strong>Track Your Progress</strong>
+                                <p>Keep track of your applications and placement journey.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="auth-information-footer">
+                        <i class="bi bi-shield-check"></i>
+                        Your career journey starts with one step.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Registration Form -->
+            <section class="auth-form-section">
+
+                <div class="auth-form-card">
+
+                    <div class="auth-mobile-icon">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+
+                    <div class="auth-form-heading">
+
+                        <span class="form-eyebrow">
+                            CREATE YOUR ACCOUNT
+                        </span>
+
+                        <h2>Get Started</h2>
+
+                        <p>
+                            Enter your details below to create your CareerSphere account.
+                        </p>
+
+                    </div>
+
+
+                    <div id="registerMessage"
+                         class="auth-message"
+                         role="alert"
+                         aria-live="polite"
+                         hidden>
+                    </div>
+
+
+                    <form id="registerForm" novalidate>
+
+                        <!-- Full Name -->
+                        <div class="auth-field">
+
+                            <label for="fullName">Full Name</label>
+
+                            <div class="auth-input-wrapper">
+
+                                <input
+                                    type="text"
+                                    id="fullName"
+                                    placeholder="Enter your full name"
+                                    autocomplete="name"
+                                    required
+                                >
+
+                            </div>
+
+                            <span class="field-error" id="fullNameError"></span>
+
+                        </div>
+
+
+                        <!-- Email -->
+                        <div class="auth-field">
+
+                            <label for="registerEmail">Email Address</label>
+
+                            <div class="auth-input-wrapper">
+
+                                <input
+                                    type="email"
+                                    id="registerEmail"
+                                    placeholder="Enter your NIE college email ID (e.g., 2025cs_student01@nie.ac.in)"    
+                                    autocomplete="email"
+                                    required
+                                >
+                                <small class="text-muted">
+    Students must use their official NIE college email ending in @nie.ac.in.
+    Recruiters may use other email addresses.
+</small>
+
+                            </div>
+
+                            <span class="field-error" id="registerEmailError"></span>
+
+                        </div>
+
+
+                        <!-- Account Role -->
+                        <div class="auth-field">
+
+                            <label for="accountRole">Account Type</label>
+
+                            <div class="auth-input-wrapper">
+
+                                <select
+    id="accountRole"
+    class="form-select"
+    required
+>
+                                    <option value="">Select your account type</option>
+                                    <option value="student">Student</option>
+                                    <option value="recruiter">Recruiter</option>
+                                    <option value="admin">Administrator</option>
+
+                                </select>
+
+                            </div>
+
+                            <span class="field-error" id="accountRoleError"></span>
+
+                        </div>
+
+
+                        <!-- Student Details -->
+                        <div id="studentDetails" hidden>
+
+                            <div class="auth-field">
+
+                                <label for="department">Department</label>
+
+                                <div class="auth-input-wrapper">
+
+                                    <select
+                                        id="department"
+                                        class="form-select"
+                                    >
+
+                                        <option value="">Select your department</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                        <option value="Information Science">Information Science</option>
+                                        <option value="Electronics and Communication">Electronics and Communication</option>
+                                        <option value="Electrical and Electronics">Electrical and Electronics</option>
+                                        <option value="Mechanical">Mechanical</option>
+                                        <option value="Civil">Civil</option>
+                                        <option value="Other">Other</option>
+
+                                    </select>
+
+                                </div>
+
+                                <span class="field-error" id="departmentError"></span>
+
+                            </div>
+
+
+                            <div class="auth-field">
+
+                                <label for="graduationYear">Graduation Year</label>
+
+                                <div class="auth-input-wrapper">
+
+                                    <select
+                                        id="graduationYear"
+                                        class="form-select"
+                                    >
+
+                                        <option value="">Select graduation year</option>
+                                        <option value="2026">2026</option>
+                                        <option value="2027">2027</option>
+                                        <option value="2028">2028</option>
+                                        <option value="2029">2029</option>
+                                        <option value="2030">2030</option>
+
+                                    </select>
+
+                                </div>
+
+                                <span class="field-error" id="graduationYearError"></span>
+
+                            </div>
+
+                            <!-- Academic details are intentionally placed after department and graduation year. -->
+                            <div id="academicRegistrationFields">
+                                <div class="auth-field">
+                                    <label for="academicCgpa">Declared CGPA</label>
+                                    <div class="auth-input-wrapper">
+                                        <input type="number" class="form-control" id="academicCgpa"
+                                               name="cgpa" min="0" max="10" step="0.01"
+                                               placeholder="Enter your CGPA">
+                                    </div>
+                                    <span class="field-error" id="academicCgpaError"></span>
+                                </div>
+
+                                <div class="auth-field">
+                                    <label for="marksheetFile">Upload Latest Marksheet</label>
+                                    <div class="auth-input-wrapper">
+                                        <input type="file" class="form-control" id="marksheetFile"
+                                               name="marksheet" accept=".pdf,.jpg,.jpeg,.png">
+                                    </div>
+                                    <small class="text-muted">Accepted formats: PDF, JPG, JPEG and PNG. Maximum size: 10 MB.</small>
+                                    <span class="field-error" id="marksheetFileError"></span>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Admin access is protected by a server-side registration code. -->
+                        <div id="adminRegistrationDetails" class="auth-field" hidden>
+                            <label for="adminRegistrationCode">Administrator Registration Code</label>
+                            <div class="auth-input-wrapper">
+                                <input
+                                    type="password"
+                                    id="adminRegistrationCode"
+                                    placeholder="Enter the administrator code"
+                                    autocomplete="off"
+                                >
+                            </div>
+                            <small class="text-muted">This code must be configured by the project administrator in the server environment.</small>
+                            <span class="field-error" id="adminRegistrationCodeError"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="auth-field">
+
+                            <label for="registerPassword">Create Password</label>
+
+                            <div class="auth-input-wrapper">
+
+                                <input
+                                    type="password"
+                                    id="registerPassword"
+                                    class="password-input"
+                                    placeholder="Create a strong password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    id="toggleRegisterPassword"
+                                    aria-label="Show password"
+                                >
+                                    Show
+                                </button>
+
+                            </div>
+
+                            <span class="field-error" id="registerPasswordError"></span>
+
+                        </div>
+
+
+                        <!-- Confirm Password -->
+                        <div class="auth-field">
+
+                            <label for="confirmPassword">Confirm Password</label>
+
+                            <div class="auth-input-wrapper">
+
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    class="password-input"
+                                    placeholder="Re-enter your password"
+                                    autocomplete="new-password"
+                                    required
+                                >
+
+                            </div>
+
+                            <span class="field-error" id="confirmPasswordError"></span>
+
+                        </div>
+
+
+                        <!-- Terms -->
+                        <div class="auth-field">
+
+                            <label class="remember-option">
+
+                                <input
+                                    type="checkbox"
+                                    id="agreeTerms"
+                                >
+
+                                <span>
+                                    I agree to the terms and conditions.
+                                </span>
+
+                            </label>
+
+                            <span class="field-error" id="termsError"></span>
+
+                        </div>
+
+
+                        <!-- Submit -->
+                        <button
+                            type="submit"
+                            class="auth-submit-button"
+                            id="registerButton"
+                        >
+
+                            <span id="registerButtonText">
+                                Create Account
+                            </span>
+
+                            <i class="bi bi-arrow-right"></i>
+
+                        </button>
+
+                    </form>
+
+
+                    <div class="auth-register-link">
+
+                        Already have an account?
+
+                        <a href="login.html">Sign In</a>
+
+                    </div>
+
+
+                    <div class="auth-security-note">
+
+                        <i class="bi bi-shield-lock"></i>
+                        Your account information is handled by the CareerSphere backend.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <footer class="auth-footer">
+
+        © 2026 CareerSphere. All rights reserved.
+
+    </footer>
+
+
+    <script src="script.js"></script>
+    <script src="academic-verification.js"></script>
+
+</body>
+</html>
