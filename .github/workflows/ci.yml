@@ -15,7 +15,7 @@ jobs:
 
     env:
       MONGO_URL: mongodb://localhost:27017/
-      MARKSHEET_DIR: ${{ runner.temp }}/uploads/marksheets
+      MARKSHEET_DIR: /tmp/careersphere-ci/uploads/marksheets
 
     services:
       mongodb:
