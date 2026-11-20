@@ -1,0 +1,25 @@
+CAREERSPHERE / CARRIERSPHEARE - QUICK START (WINDOWS)
+
+1. Install and start Docker Desktop.
+2. In this folder, copy .env.example to .env:
+   Copy-Item .env.example .env
+3. Open .env in Notepad and set:
+   SECRET_KEY = a long private random value
+   ADMIN_REGISTRATION_CODE = a private code for admin signup (optional)
+   GOOGLE_API_KEY = your Gemini key (optional; built-in placement guidance works without it)
+4. Start the complete stack:
+   docker compose -p carrierspheare up -d --build
+5. Check:
+   docker compose -p carrierspheare ps
+6. Open:
+   Website: http://localhost:5501
+   API docs: http://localhost:8003/docs
+   API health: http://localhost:8003/health
+
+Stop only this project:
+   docker compose -p carrierspheare down
+
+IMPORTANT:
+- Do NOT run "docker compose down -v" unless you intend to erase the MongoDB data volume.
+- Keep .env private. Never upload it to GitHub or share it.
+- To launch this same project on another computer, copy the project folder, install Docker Desktop, create that computer's .env, and run the start command above.
